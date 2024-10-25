@@ -4,91 +4,97 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import io
-import os
+
 from collections import Counter
-from scipy import ndimage
 from PIL import Image  
 import tkinter as tk
 from tkinter import filedialog, messagebox
+from tensorflow.keras.models import load_model
 
-# Definir la función id_to_string
-def id_to_string(id):
-    genres = ["blues", "classical", "country", "disco", "hiphop", "jazz", "metal", "pop", "reggae", "rock"]
-    return genres[id] if 0 <= id < len(genres) else "unknown"
+# Cargar el modelo solo una vez, optimizando la carga
+MODEL_PATH = "/Users/diego/UValencia/TFG/notebook/model/modelo90%.h5"
+model = load_model(MODEL_PATH)
 
-# Cargar el modelo desde el archivo .h5
-from tensorflow import keras
-from keras.models import load_model
-model = load_model("/Users/diego/UValencia/TFG/notebook/model/modelo90%.h5")
+# Diccionario para la conversión de id a género, mejorando la legibilidad
+GENRE_DICT = {
+    0: "blues", 1: "classical", 2: "country", 3: "disco", 4: "hiphop",
+    5: "jazz", 6: "metal", 7: "pop", 8: "reggae", 9: "rock"
+}
 
-# Función para crear espectrogramas
+def id_to_string(genre_id):
+    """Convierte un ID de género a su nombre"""
+    return GENRE_DICT.get(genre_id, "unknown")
+
 def create_spectrograms(audio_file, segment_duration=5):
+    """Crea una lista de espectrogramas a partir de un archivo de audio."""
     lista = []
     try:
         y, sr = librosa.load(audio_file)
-    except:
-        print(f"Error loading {audio_file}")
+    except (FileNotFoundError, librosa.util.exceptions.ParameterError) as e:
+        print(f"Error loading {audio_file}: {e}")
         return lista
 
-    start_sec = 0
     duration = len(y) / sr
     for i in range(0, int(duration / segment_duration)):
-        fig = plt.figure(figsize=(216 / 100, 224 / 100))  # Tamaño en pulgadas
-        ax = fig.add_subplot(1, 1, 1)
-        fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
-        mel = librosa.feature.melspectrogram(y=y[int(start_sec * sr):int((start_sec + segment_duration) * sr)], sr=sr, n_mels=224)
-        start_sec += segment_duration
-        mel = librosa.power_to_db(mel)
-        librosa.display.specshow(mel, sr=sr, cmap='magma')
+        segment = y[i * segment_duration * sr:(i + 1) * segment_duration * sr]
+        
+        mel = librosa.feature.melspectrogram(y=segment, sr=sr, n_mels=224)
+        mel_db = librosa.power_to_db(mel)
+        
+        fig, ax = plt.subplots(figsize=(2.16, 2.24))
+        ax.axis('off')
+        librosa.display.specshow(mel_db, sr=sr, cmap='magma', ax=ax)
+        
         buf = io.BytesIO()
-        plt.savefig(buf, format='png')
+        plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
         buf.seek(0)
-        img = Image.open(buf)
-        img = img.rotate(180)
-        img = img.resize((224, 216))
-        img_rgb = img.convert('RGB')
-        lista.append(np.array(img_rgb) / 255)
-        plt.clf()
+        
+        img = Image.open(buf).rotate(180).resize((224, 216)).convert('RGB')
+        lista.append(np.array(img) / 255)
+        
         plt.close(fig)
     return lista
 
-# Función para cargar y clasificar un archivo de audio
 def classify_audio():
+    """Función para cargar un archivo de audio, crear sus espectrogramas, y clasificar el género mediante el modelo cargado."""
     file_path = filedialog.askopenfilename()
     if not file_path:
         return
 
     start_time = time.perf_counter()
-    fotos = create_spectrograms(file_path, 5)
-    indices = []
+    spectrograms = create_spectrograms(file_path, segment_duration=5)
+    
+    if not spectrograms:
+        messagebox.showerror("Error", "No se pudieron generar espectrogramas.")
+        return
 
-    for foto in fotos:
-        foto = np.expand_dims(foto, axis=0)
-        indices.append(np.argmax(model.predict(foto, verbose=0)))
-
+    predictions = [np.argmax(model.predict(np.expand_dims(spec, axis=0), verbose=0)) for spec in spectrograms]
     elapsed_time = time.perf_counter() - start_time
-    conteo = Counter(indices)
-    valor_mas_repetido, repeticiones = conteo.most_common(1)[0]
+    
+    genre_counts = Counter(predictions)
+    most_common_genre, repetitions = genre_counts.most_common(1)[0]
 
-    result = f"Genero: {id_to_string(valor_mas_repetido)}, Repeticiones: {repeticiones}\n"
+    result = f"Genero: {id_to_string(most_common_genre)}, Repeticiones: {repetitions}\n"
     result += f"Tiempo transcurrido: {elapsed_time:.2f} segundos\n"
-    result += "Conteo de las predicciones:\n"
-    for clase, conteo in conteo.items():
-        result += f" {id_to_string(clase)}: {conteo} \n"
+    result += "Conteo de las predicciones:\n" + ''.join(f" {id_to_string(genre)}: {count}\n" for genre, count in genre_counts.items())
     
     messagebox.showinfo("Resultado de la Clasificación", result)
 
-# Configuración de la interfaz gráfica con Tkinter
-root = tk.Tk()
-root.title("Clasificador de Géneros Musicales")
+def setup_gui():
+    """Configura la interfaz gráfica para cargar y clasificar un archivo de audio."""
+    root = tk.Tk()
+    root.title("Clasificador de Géneros Musicales")
 
-frame = tk.Frame(root, padx=10, pady=10)
-frame.pack(padx=10, pady=10)
+    frame = tk.Frame(root, padx=10, pady=10)
+    frame.pack(padx=10, pady=10)
 
-label = tk.Label(frame, text="Clasificador de Géneros Musicales", font=("Helvetica", 16))
-label.pack(pady=10)
+    label = tk.Label(frame, text="Clasificador de Géneros Musicales\n\nPor Diego García Caínzos - TFG 2024", font=("Helvetica", 16))
+    label.pack(pady=10)
 
-btn_classify = tk.Button(frame, text="Cargar y Clasificar Audio", command=classify_audio, font=("Helvetica", 14))
-btn_classify.pack(pady=20)
+    btn_classify = tk.Button(frame, text="Cargar y Clasificar Audio", command=classify_audio, font=("Helvetica", 14))
+    btn_classify.pack(pady=20)
 
-root.mainloop()
+    root.mainloop()
+
+if __name__ == "__main__":
+    setup_gui()

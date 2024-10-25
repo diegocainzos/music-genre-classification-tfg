@@ -7,7 +7,7 @@ Este proyecto implementa un sistema de clasificación de géneros musicales medi
 - **`music_genre_classifier.py`**: Script para clasificar archivos de audio en géneros musicales usando un modelo previamente entrenado.
 - **`music-spectrograms.ipynb`**: Notebook para generar espectrogramas a partir de archivos de audio, con opciones de aumentación de datos.
 - **`train_network.ipynb`**: Notebook para entrenar la red neuronal usando espectrogramas generados y dividir los datos en conjuntos de entrenamiento, validación y prueba.
-
+- La carpeta gráficas contiene las figuras incluidas en la memoria del proyecto. En ella podemos conocer más en detalle la distribución, resultados y conclusiones del trabajo.
 ## Requisitos Previos
 
 - **Python** >= 3.7

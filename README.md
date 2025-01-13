@@ -2,16 +2,40 @@
 
 Este proyecto implementa un sistema de clasificación de géneros musicales mediante redes neuronales convolucionales (CNNs) que usa espectrogramas de archivos de audio como entrada. El modelo permite preprocesar archivos de audio, crear espectrogramas, y entrenar una red neuronal para la clasificación de diferentes géneros musicales.
 
-![Predicción Demo](gráficas/test.gif)
+### Predicción Demo
+Puedes ver una demo de predicción a continuación:
+
+<img src="gráficas/test.gif" alt="Predicción Demo" width="500" style="display: block; margin: 0 auto;" />
 
 
-## Contenido del Repositorio
+## Estructura del Repositorio
 
-- **`music_genre_classifier.py`**: Script para clasificar archivos de audio en géneros musicales usando un modelo previamente entrenado.
-- **`music-spectrograms.ipynb`**: Notebook para generar espectrogramas a partir de archivos de audio, con opciones de aumentación de datos.
-- **`train_network.ipynb`**: Notebook para entrenar la red neuronal usando espectrogramas generados y dividir los datos en conjuntos de entrenamiento, validación y prueba.
-- La carpeta gráficas contiene las figuras incluidas en la memoria del proyecto. En ella podemos conocer más en detalle la distribución, resultados y conclusiones del trabajo.
-## Requisitos Previos
+La estructura del proyecto es la siguiente:
 
-- **Python** >= 3.7
-- Bibliotecas requeridas: `librosa`, `tensorflow`, `keras`, `matplotlib`, `PIL`, `tkinter`, `audiomentations`, `numpy`, `sklearn`
+- **`script/`**: Script que lanza la interfaz.
+- **`aumento de datos y procesado de audio/`**: Notebooks relacionados con la gestión y preprocesamiento de datos.
+- **`model/`**: Modelos entrenados y definiciones de arquitectura.
+- **`entrenamiento y pruebas/`**: Notebooks para exploración de datos y experimentación.
+- **`gráficas/`**: Resultados obtenidos durante los experimentos, como métricas y gráficos.
+- **`tfg_diego_garcia.pdf/`**: Memoria LibText de la tesis.
+
+## Instalación
+
+Sigue estos pasos para configurar el proyecto en tu entorno local:
+
+### 1. Clonar el repositorio
+Primero, clona este repositorio en tu máquina local:
+```bash
+git clone https://github.com/tu-usuario/nombre-repositorio.git
+cd nombre-repositorio
+```
+### 2. Instalar las librerias requeridas
+```bash
+pip install -r requirements.txt
+```
+### 3. Ejecutar el script
+
+```bash
+cd script
+python music_genre_classifier.py
+```

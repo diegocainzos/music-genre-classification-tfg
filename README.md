@@ -7,8 +7,9 @@ Este proyecto implementa un sistema de clasificación de géneros musicales medi
 ## 🎯 Predicción Demo
 ¡Mira la demo de predicción en acción! 
 <br>
-
-<img src="gráficas/test.gif" alt="Predicción Demo" width="500" style="display: block; margin: 0 auto; border-radius: 10px;" />
+<div style="display: flex; justify-content: center;">
+  <img src="gráficas/test.mov" alt="Predicción Demo" width="500" style="display: block; margin: 0 auto; border-radius: 10px;" />
+</div>
 
 ---
 
